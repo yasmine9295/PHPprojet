@@ -23,3 +23,23 @@
 /register:
   controller: Auth
   action: register
+
+/confirm:
+  controller: Auth
+  action: confirm
+
+/forgot-password:
+  controller: Auth
+  action: forgot
+
+/reset-password:
+  controller: Auth
+  action: reset
+
+/backoffice:
+  controller: Admin
+  action: index
+
+/admin/users:
+  controller: Admin
+  action: users

@@ -15,6 +15,7 @@ services:
       - APACHE_LOG_DIR=/var/log/apache2
     depends_on:
       - db
+      - mailhog   # ajouter dépendance sur MailHog
 
   db:
     image: postgres:15-alpine
@@ -42,6 +43,13 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
       - db
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "8025:8025"   
+      - "1025:1025"   
 
 volumes:
   pgdata:
