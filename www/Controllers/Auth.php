@@ -29,11 +29,11 @@ class Auth
                     exit;
 
                 } else {
-                    $error = "Your account has not been confirmed yet.";
+                    $error = "Vous n'avez pas encore confirmé votre compte par mail.";
                 }
 
             } else {
-                $error = "Incorrect username or password.";
+                $error = "Username ou password incorrect.";
             }
         }
 
@@ -50,22 +50,29 @@ class Auth
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $username = trim($_POST["username"]);
             $email = trim($_POST["email"]);
-            $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+            $password = trim($_POST["password"]);
+            $confirmPassword = trim($_POST["confirm_password"]);
 
-            $pdo = Database::getInstance()->getPDO();
-
-            // Check if user already exists
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-            $stmt->execute([$username, $email]);
-
-            if ($stmt->fetch()) {
-                $error = "This username or email is already taken.";
+            if ($password !== $confirmPassword) {
+                $error = "Les passwords ne sont pas les mêmes.";
+            } elseif (strlen($password) < 8) {
+                $error = "Password doit avoir au moins 8 characters.";
             } else {
-                // Insert new user
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password, confirmed) VALUES (?, ?, ?, 0)");
-                $stmt->execute([$username, $email, $password]);
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-                $success = "Account created successfully! Please check your email to confirm your account.";
+                $pdo = Database::getInstance()->getPDO();
+
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+                $stmt->execute([$username, $email]);
+
+                if ($stmt->fetch()) {
+                    $error = "Cet username ou email est déjà utilisé.";
+                } else {
+                    $stmt = $pdo->prepare("INSERT INTO users (username, email, password, confirmed) VALUES (?, ?, ?, false)");
+                    $stmt->execute([$username, $email, $passwordHash]);
+
+                    $success = "Utilisateur ajouter avec succès! Veuillez vérifier votre email pour terminer l'inscription.";
+                }
             }
         }
 

@@ -6,8 +6,7 @@
   controller: Base
   action: contact
 
-
-/mon-super-portfolio:
+/portfolio:
   controller: Base
   action: portfolio
 
@@ -36,10 +35,48 @@
   controller: Auth
   action: reset
 
+
+
 /backoffice:
   controller: Admin
   action: index
 
+/dashboard:
+  controller: Admin
+  action: index
+
+
+
 /admin/users:
   controller: Admin
   action: users
+
+/admin/users/create:
+  controller: Admin
+  action: createUser
+
+/admin/users/edit:
+  controller: Admin
+  action: editUser
+
+/admin/users/delete:
+  controller: Admin
+  action: deleteUser
+
+
+
+/admin/pages:
+  controller: Admin
+  action: pages
+
+/admin/pages/create:
+  controller: Admin
+  action: createPage
+
+/admin/pages/edit:
+  controller: Admin
+  action: editPage
+
+/admin/pages/delete:
+  controller: Admin
+  action: deletePage

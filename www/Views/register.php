@@ -1,33 +1,37 @@
-<?php
-$conn = new mysqli("db", "devuser", "devpass", "devdb");
-if ($conn->connect_error) die("Connection failed: ".$conn->connect_error);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-
-    $hash = password_hash($password, PASSWORD_BCRYPT);
-    $token = bin2hex(random_bytes(16));
-
-
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email=? OR username=?");
-    $stmt->bind_param("ss", $email, $username);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if($res->num_rows > 0){
-        die("Email or username already in use");
-    }
-
-
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password, confirmation_token) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $username, $email, $hash, $token);
-    $stmt->execute();
-
-
-    $link = "http://localhost:8080/confirm.php?token=".$token;
-    mail($email, "Confirm Your Account", "Click here to confirm your account: $link");
-
-    echo "Registration successful, check your email!";
-}
-?>
+<div class="auth-container">
+    <h2>Créer un compte</h2>
+    
+    <?php if(!empty($error)): ?>
+        <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+    
+    <?php if(!empty($success)): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+    <?php else: ?>
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password (min 8 characters):</label>
+                <input type="password" id="password" name="password" required minlength="8">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            
+            <button type="submit">S'inscrire</button>
+        </form>
+        
+        <p>Vous avez déjà un compte? <a href="/login">Se connecter</a></p>
+    <?php endif; ?>
+</div>
