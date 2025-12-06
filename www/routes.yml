@@ -27,7 +27,7 @@
   controller: Auth
   action: confirm
 
-/forgot-password:
+/forgot_password:
   controller: Auth
   action: forgot
 

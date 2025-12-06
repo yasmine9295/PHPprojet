@@ -1,11 +1,11 @@
 <?php
 
 namespace App;
-var_dump(file_exists(__DIR__ . '/../vendor/autoload.php'));
+// je démarre la session en premier, sans rien afficher avant
+session_start();
 
-
-session_start(); /* */
-
+// je charge l'autoload de composer (obligatoire pour PHPMailer)
+require __DIR__ . '/../vendor/autoload.php';
 
 spl_autoload_register(function ($class){
     $class = str_ireplace(["\\", "App"], ["/", ".."],$class);
@@ -76,4 +76,5 @@ if(isset($routes[$requestUri])){
         // http_response_code(404);
         die("Aucune page trouvé: 404");
     }
+    
 }
