@@ -22,8 +22,11 @@
                     <li><a href="/contact">Contact</a></li>
                     <li><a href="/portfolio">Portfolio</a></li>
                     <?php if(isset($_SESSION['user_id'])): ?>
+                        <?php if(isset($_SESSION['roles'])=='administrateur'): ?>
                         <li><a href="/dashboard">Dashboard</a></li>
+                        <?php endif; ?>
                         <li><a href="/logout">Logout</a></li>
+                       
                     <?php else: ?>
                         <li><a href="/login">Login</a></li>
                         <li><a href="/register">Register</a></li>

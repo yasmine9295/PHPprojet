@@ -78,7 +78,7 @@ class Auth
 
                     // on insère l'utilisateur
                     $stmt = $pdo->prepare(
-                        "INSERT INTO users (username, email, password, confirmed, confirmation_token) VALUES (?, ?, ?, false, ?)"
+                        "INSERT INTO users (username, email, password, confirmed, confirmation_token, roles) VALUES (?, ?, ?, false, ?, utilisateur)"
                     );
                     $stmt->execute([$username, $email, $passwordHash, $token]);
 
