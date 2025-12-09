@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS public.users
     reset_token VARCHAR(100),
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     date_updated TIMESTAMP
-    roles varchar (255) NOT NULL,
 );
 
 -- Table pages
@@ -52,4 +51,3 @@ CREATE TABLE IF NOT EXISTS public.pages
 
 ALTER TABLE IF EXISTS public.users OWNER to devuser;
 ALTER TABLE IF EXISTS public.pages OWNER to devuser;
-

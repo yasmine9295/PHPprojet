@@ -78,7 +78,7 @@ class Auth
 
                     // on insère l'utilisateur
                     $stmt = $pdo->prepare(
-                        "INSERT INTO users (username, email, password, confirmed, confirmation_token, roles) VALUES (?, ?, ?, false, ?, utilisateur)"
+                        "INSERT INTO users (username, email, password, confirmed, confirmation_token) VALUES (?, ?, ?, false, ?)"
                     );
                     $stmt->execute([$username, $email, $passwordHash, $token]);
 
@@ -137,7 +137,7 @@ class Auth
             $error = "aucun token fourni.";
         }
 
-        $render = new Render("confirm", "backoffice");
+        $render = new Render("dashboard", "backoffice");
         $render->assign("error", $error);
         $render->assign("success", $success);
         $render->render();

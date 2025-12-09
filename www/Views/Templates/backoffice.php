@@ -10,7 +10,7 @@
     <div class="header">
         <h1>Back Office</h1>
         <div class="user-info">
-            <?php if(isset($_SESSION['username']) && isset($_SESSION['roles'])=='administrateur' )?>
+            <?php if(isset($_SESSION['username'])): ?>
                 <span>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
                 <a href="/logout" style="color: white;">Logout</a>
             <?php endif; ?>
