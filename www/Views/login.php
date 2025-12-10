@@ -7,5 +7,7 @@
 
     <button type="submit">Se connecter</button> 
     <p>Vous n'avez pas de compte? <a href="/register">S'inscrire</a></p>
+    <a href="/forgot_password">mot de passe oublié </a></p>
+
 </form>
  

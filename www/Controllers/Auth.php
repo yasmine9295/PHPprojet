@@ -1,10 +1,11 @@
 <?php
 namespace App\Controllers;
 
+use PDO;
 use App\Core\Render;
 use App\Core\Database;
-use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class Auth
 {
@@ -51,70 +52,71 @@ class Auth
         $render->render();
     }
 
-    // inscription d'un nouvel utilisateur
-    public function register(): void
-    {
-        $error = null;
-        $success = null;
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim($_POST['username']);
-            $email = trim($_POST['email']);
-            $password = trim($_POST['password']);
-            $confirmPassword = trim($_POST['confirm_password']);
+public function register(): void
+{
+    $error = null;
+    $success = null;
 
-            // vérification du mot de passe
-            if ($password !== $confirmPassword) {
-                $error = "les mots de passe ne correspondent pas.";
-            } elseif (strlen($password) < 8) {
-                $error = "le mot de passe doit contenir au moins 8 caractères.";
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (!$username || !$email || !$password || !$confirmPassword) {
+            $error = "Tous les champs sont requis.";
+        } elseif ($password !== $confirmPassword) {
+            $error = "Les mots de passe ne correspondent pas.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Email invalide.";
+        } else {
+            $pdo = Database::getInstance()->getPDO();
+
+            // verifier si l'utilisateur existe déjà
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+            $stmt->execute([$email, $username]);
+            if ($stmt->fetch()) {
+                $error = "Email ou nom d'utilisateur déjà utilisé.";
             } else {
-                $pdo = Database::getInstance()->getPDO();
+                // Insertion de l'utilisateur
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $token = bin2hex(random_bytes(32));
+                $stmt = $pdo->prepare(
+                    "INSERT INTO users (username, email, role, password, confirmed, confirmation_token) 
+                     VALUES (?, ?, 'user', ?, false, ?)"
+                );
+                $stmt->execute([$username, $email, $passwordHash, $token]);
 
-                // on vérifie si le nom ou l'email existe déjà
-                $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-                $stmt->execute([$username, $email]);
+                // envoi du mail de confirmation
+                try {
+                    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                    $mail->isSMTP();
+                    $mail->Host = 'mailhog';
+                    $mail->Port = 1025;
+                    $mail->SMTPAuth = false;
 
-                if ($stmt->fetch()) {
-                    $error = "ce nom d'utilisateur ou email est déjà utilisé.";
-                } else {
-                    // on hash le mot de passe et génère un token de confirmation
-                    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                    $token = bin2hex(random_bytes(32));
+                    $mail->setFrom('test@gmail.com', 'phpprojet');
+                    $mail->addAddress($email, $username);
+                    $mail->Subject = 'Confirmation de votre compte';
+                    $mail->Body = "Cliquez sur ce lien pour confirmer votre compte : http://localhost:8080/confirm?token=$token";
+                    $mail->send();
 
-                    // on insère l'utilisateur
-                    $stmt = $pdo->prepare(
-                        "INSERT INTO users (username, email, role, password, confirmed, confirmation_token) VALUES (?, ?, 'user', ?, false, ?)"
-                    );
-                    $stmt->execute([$username, $email, $passwordHash, $token]);
-
-                    // on envoie le mail de confirmation
-                    $mail = new PHPMailer(true);
-                    try {
-                        $mail->isSMTP();
-                        $mail->Host = 'mailhog';
-                        $mail->Port = 1025;
-                        $mail->SMTPAuth = false;
-
-                        $mail->setFrom('test@gmail.com', 'phpprojet');
-                        $mail->addAddress($email, $username);
-                        $mail->Subject = 'confirmation de votre compte';
-                        $mail->Body = "cliquez sur ce lien pour confirmer votre compte : http://localhost:8080/confirm?token=$token";
-
-                        $mail->send();
-                        $success = "utilisateur créé, verifiez vos mails pour la confirmation";
-                    } catch (Exception $e) {
-                        $error = "erreur" . $mail->ErrorInfo;
-                    }
+                    $success = "Utilisateur créé avec succès. Vérifiez vos emails pour la confirmation.";
+                } catch (\Exception $e) {
+                    $error = "Erreur lors de l'envoi de l'email : " . $mail->ErrorInfo;
                 }
             }
         }
-
-        $render = new Render("register", "backoffice");
-        $render->assign("error", $error);
-        $render->assign("success", $success);
-        $render->render();
     }
+
+    // Affichage de la vue
+    $render = new Render("register", "backoffice");
+    $render->assign("error", $error);
+    $render->assign("success", $success);
+    $render->render();
+}
+
 
     // confirmation de compte
     public function confirm(): void
@@ -134,11 +136,11 @@ class Auth
             $stmt = $pdo->prepare("UPDATE users SET confirmed = true, confirmation_token = NULL WHERE id = ?");
             $stmt->execute([$user['id']]);
 
-            header("Location: /login" . urlencode($token));
+            header("Location: /login" );
             exit;
 
         } else {
-            // Token invalide — redirection avec message d'erreur dans l’URL
+            // Token invalide donc redirection avec message d'erreur dans l’URL
             header("Location: /login");
             exit;
         }
@@ -189,8 +191,8 @@ class Auth
 
                     $mail->setFrom('test@gmail.com', 'phpprojet');
                     $mail->addAddress($email);
-                    $mail->Subject = 'réinitialisation du mot de passe';
-                    $mail->Body = "cliquez sur ce lien pour réinitialiser votre mot de passe : http://localhost:8080/reset-password?token=$token";
+                    $mail->Subject = 'reinitialisation du mot de passe';
+                    $mail->Body = "cliquez sur ce lien pour réinitialiser votre mot de passe : http://localhost:8080/reset-password?token=".$token;
 
                     $mail->send();
                 } catch (Exception $e) {
@@ -199,7 +201,6 @@ class Auth
             }
 
         }
-
         $render = new Render("forgot_password", "backoffice");
         $render->assign("error", $error);
         $render->assign("success", $success);
@@ -225,10 +226,12 @@ class Auth
             } elseif ($password !== $confirmPassword) {
                 $error = "les mots de passe ne correspondent pas.";
             } else {
+                
                 // on récupère l'utilisateur avec le token
                 $stmt = $pdo->prepare("SELECT id FROM users WHERE reset_token = ?");
                 $stmt->execute([$tokenPost]);
                 $user = $stmt->fetch();
+                
 
                 if ($user) {
                     // on met à jour le mot de passe et supprime le token
