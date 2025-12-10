@@ -11,9 +11,13 @@ class Base
     public function index(): void
     {
 
-        // if (!isset($_SESSION['user'])) {
+        // if (!isset($_SESSION['username'])) {
         //     header('Location: /login');
         //     exit();
+        // } else {
+        //     header('Location: /dashboard');
+        //     exit();
+
         // }
 
         $render = new Render("home", "frontoffice");

@@ -20,6 +20,14 @@
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" value="<?= htmlspecialchars($userData['email'] ?? '') ?>" required>
         </div>
+
+        <div class="form-group">
+            <label for="role">Rôle: </label>
+            <select id="role" name="role" required>
+                <option value="user" <?= ($userData && $userData['role'] === 'user') ? 'selected' : '' ?>>Utilisateur</option>
+                <option value="admin" <?= ($userData && $userData['role'] === 'admin') ? 'selected' : '' ?>>Administrateur</option>
+            </select>
+        </div>
         
         <div class="form-group">
             <label for="password">Password <?= $action === 'edit' ? '(leave empty to keep current)' : '' ?>:</label>

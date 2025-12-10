@@ -8,16 +8,21 @@
 </head>
 <body>
     <div class="header">
+        <?php if(isset($_SESSION['username']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <h1>Back Office</h1>
         <div class="user-info">
-            <?php if(isset($_SESSION['username'])): ?>
+            <?php if(isset($_SESSION['username']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                 <span>Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
                 <a href="/logout" style="color: white;">Logout</a>
             <?php endif; ?>
         </div>
+        <?php else: ?>
+            <h1>Front Office</h1>
+        <?php endif; ?>
+
     </div>
     
-    <?php if(isset($_SESSION['user_id'])): ?>
+    <?php if(isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
     <nav class="nav-menu">
         <ul>
             <li><a href="/dashboard">Dashboard</a></li>

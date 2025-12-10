@@ -8,7 +8,7 @@ class Admin
 {
     private function checkAuth(): void
     {
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user_id']) && !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             header("Location: /login");
             exit;
         }
@@ -59,12 +59,15 @@ class Admin
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $username = trim($_POST["username"] ?? "");
             $email = trim($_POST["email"] ?? "");
+            $role = $_POST["role"] ?? "user";
             $password = $_POST["password"] ?? "";
             $isActive = isset($_POST["is_active"]) ? true : false;
             $confirmed = isset($_POST["confirmed"]) ? true : false;
 
             if (empty($username) || empty($email) || empty($password)) {
-                $error = "All fields are required.";
+                 $error = "Tous les champs sont requis.";
+            } elseif (!in_array($role, ['admin', 'user'])) {
+                $error = "Rôle invalide.";
             } else {
                 $pdo = Database::getInstance()->getPDO();
                 
@@ -78,8 +81,8 @@ class Admin
                     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                     
                     $request = $pdo->prepare(
-                        "INSERT INTO users (username, email, password, is_active, confirmed, date_created) 
-                         VALUES (?, ?, ?, ?, ?, NOW())"
+                        "INSERT INTO users (username, email, role, password, is_active, confirmed, date_created) 
+                         VALUES (?, ?, ?, ?, ?, ?, NOW())"
                     );
                     $request->execute([$username, $email, $hashedPassword, $isActive, $confirmed]);
                     
@@ -115,11 +118,14 @@ class Admin
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $username = trim($_POST["username"] ?? "");
             $email = trim($_POST["email"] ?? "");
+            $role = $_POST["role"] ?? "user";
             $isActive = isset($_POST["is_active"]) ? true : false;
             $confirmed = isset($_POST["confirmed"]) ? true : false;
 
             if (empty($username) || empty($email)) {
-                $error = "Username and email are required.";
+                $error = "Username et email sont requis.";
+            } elseif (!in_array($role, ['admin', 'user'])) {
+                $error = "Rôle invalide.";
             } else {
                 // Vérifier si username/email existe déjà (sauf pour cet utilisateur)
                 $request = $pdo->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
@@ -128,8 +134,8 @@ class Admin
                 if ($request->fetch()) {
                     $error = "Username or email already exists.";
                 } else {
-                    $updateQuery = "UPDATE users SET username = ?, email = ?, is_active = ?, confirmed = ?, date_updated = NOW()";
-                    $params = [$username, $email, $isActive, $confirmed];
+                    $updateQuery = "UPDATE users SET username = ?, email = ?, role = ?, is_active = ?, confirmed = ?, date_updated = NOW()";
+                    $params = [$username, $email, $role, $isActive, $confirmed];
                     
                     // Si un nouveau mot de passe est fourni
                     if (!empty($_POST["password"])) {

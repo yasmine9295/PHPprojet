@@ -16,6 +16,7 @@ if (isset($users)) {
                 <th>ID</th>
                 <th>Username</th>
                 <th>Email</th>
+                <th>Rôle</th>
                 <th>Confirmed</th>
                 <th>Active</th>
                 <th>Created</th>
@@ -28,6 +29,11 @@ if (isset($users)) {
                 <td><?= $user['id'] ?></td>
                 <td><?= htmlspecialchars($user['username']) ?></td>
                 <td><?= htmlspecialchars($user['email']) ?></td>
+                <td>
+                    <span class="badge badge-<?= $user['role'] === 'admin' ? 'danger' : 'info' ?>">
+                        <?= $user['role'] === 'admin' ? 'Admin' : 'User' ?>
+                    </span>
+                </td>
                 <td><?= $user['confirmed'] ? '✓' : '✗' ?></td>
                 <td><?= $user['is_active'] ? '✓' : '✗' ?></td>
                 <td><?= date('Y-m-d', strtotime($user['date_created'])) ?></td>

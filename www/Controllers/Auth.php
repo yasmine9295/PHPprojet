@@ -21,7 +21,7 @@ class Auth
             $pdo = Database::getInstance()->getPDO();
 
             // on récupère l'utilisateur correspondant au username
-            $stmt = $pdo->prepare("SELECT id, password, confirmed FROM users WHERE username = ?");
+            $stmt = $pdo->prepare("SELECT id, password, role, confirmed FROM users WHERE username = ?");
             $stmt->execute([$username]);
             $user = $stmt->fetch();
 
@@ -31,7 +31,13 @@ class Auth
                     // connexion réussie
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $username;
-                    header("Location: /dashboard");
+                    $_SESSION["role"] = $user["role"];
+
+                    if ($user["role"] === "admin") {
+                        header("Location: /dashboard");
+                    } else {
+                        header("Location: /");
+                    }
                     exit;
                 }
             } else {
@@ -78,7 +84,7 @@ class Auth
 
                     // on insère l'utilisateur
                     $stmt = $pdo->prepare(
-                        "INSERT INTO users (username, email, password, confirmed, confirmation_token) VALUES (?, ?, ?, false, ?)"
+                        "INSERT INTO users (username, email, role, password, confirmed, confirmation_token) VALUES (?, ?, 'user', ?, false, ?)"
                     );
                     $stmt->execute([$username, $email, $passwordHash, $token]);
 
@@ -112,32 +118,39 @@ class Auth
 
     // confirmation de compte
     public function confirm(): void
-    {
-        $token = $_GET['token'] ?? null;
-        $error = null;
-        $success = null;
+{
+    $token = $_GET['token'] ?? null;
 
-        if ($token) {
-            $pdo = Database::getInstance()->getPDO();
+    if ($token) {
+        $pdo = Database::getInstance()->getPDO();
 
-            // on récupère l'utilisateur correspondant au token
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE confirmation_token = ?");
-            $stmt->execute([$token]);
-            $user = $stmt->fetch();
+        // On récupère l'utilisateur correspondant au token
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE confirmation_token = ?");
+        $stmt->execute([$token]);
+        $user = $stmt->fetch();
 
-            if ($user) {
-                // on confirme le compte
-                $stmt = $pdo->prepare("UPDATE users SET confirmed = true, confirmation_token = NULL WHERE id = ?");
-                $stmt->execute([$user['id']]);
-                $success = "compte ocnfirmé";
-            } else {
-                $error = "token invalide.";
-            }
+        if ($user) {
+            // On confirme le compte
+            $stmt = $pdo->prepare("UPDATE users SET confirmed = true, confirmation_token = NULL WHERE id = ?");
+            $stmt->execute([$user['id']]);
+
+            header("Location: /login" . urlencode($token));
+            exit;
+
         } else {
-            $error = "aucun token fourni.";
+            // Token invalide — redirection avec message d'erreur dans l’URL
+            header("Location: /login");
+            exit;
         }
+    }
 
-        $render = new Render("dashboard", "backoffice");
+    // Aucun token fourni
+    header("Location: /home?error=aucun_token");
+    exit;
+
+
+
+        $render = new Render("home", "frontoffice");
         $render->assign("error", $error);
         $render->assign("success", $success);
         $render->render();
