@@ -127,31 +127,66 @@ class Admin
             } elseif (!in_array($role, ['admin', 'user'])) {
                 $error = "Rôle invalide.";
             } else {
-                // Vérifier si username/email existe déjà (sauf pour cet utilisateur)
+
+                // Vérifier si username/email existe déjà
                 $request = $pdo->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
                 $request->execute([$username, $email, $userId]);
                 
                 if ($request->fetch()) {
-                    $error = "Username or email already exists.";
+                    $error = "Username ou email existe déjà.";
                 } else {
-                    $updateQuery = "UPDATE users SET username = ?, email = ?, role = ?, is_active = ?, confirmed = ?, date_updated = NOW()";
-                    $params = [$username, $email, $role, $isActive, $confirmed];
-                    
-                    // Si un nouveau mot de passe est fourni
-                    if (!empty($_POST["password"])) {
-                        $updateQuery .= ", password = ?";
-                        $params[] = password_hash($_POST["password"], PASSWORD_DEFAULT);
+
+                    // Vérification : empêcher de retirer le dernier admin
+                    $request = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+                    $request->execute([$userId]);
+                    $currentUser = $request->fetch();
+
+                    if ($currentUser && $currentUser["role"] === "admin" && $role === "user") {
+                        $countAdmins = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+
+                        if ($countAdmins <= 1) {
+                            $error = "Impossible de retirer ce rôle : il doit rester au moins 1 administrateur.";
+                        }
                     }
+
+                    // Vérification : empêcher de modifier le username/email d'un autre utilisateur
+
+                    if (!empty($_POST["username"]) && !empty($_POST["email"])) {
+
+if ($userId !== $_SESSION["user_id"]) { 
+                                $error = "vous ne pouvez pas modifier le nom d'utilisateur ou l'email d'un autre utilisateur.";
+                        }
+                    }
+
                     
-                    $updateQuery .= " WHERE id = ?";
-                    $params[] = $userId;
-                    
-                    $request = $pdo->prepare($updateQuery);
-                    $request->execute($params);
-                    
-                    $success = "User updated successfully!";
+                    // Vérification : empêcher de désactiver son propre compte
+                    if ($userId === $_SESSION["user_id"] && !$isActive) {
+                        $error = "Vous ne pouvez pas désactiver votre propre compte.";
+                    }
+                                    
+
+                    // Si aucune erreur, on update
+                    if (!$error) {
+
+                        $updateQuery = "UPDATE users SET username = ?, email = ?, role = ?, is_active = ?, confirmed = ?, date_updated = NOW()";
+                        $params = [$username, $email, $role, $isActive, $confirmed];
+
+                        // // if (!empty($_POST["password"])) {
+                        // //     $updateQuery .= ", password = ?";
+                        // //     $params[] = password_hash($_POST["password"], PASSWORD_DEFAULT);
+                        // // }
+
+                        // $updateQuery .= " WHERE id = ?";
+                        // $params[] = $userId;
+
+                        $request = $pdo->prepare($updateQuery);
+                        $request->execute($params);
+
+                        $success = "User modifié avec succès!";
+                    }
                 }
             }
+
         }
 
         // Récupérer les données de l'utilisateur

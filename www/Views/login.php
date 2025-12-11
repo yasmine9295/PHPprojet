@@ -1,3 +1,9 @@
+<?php if (!empty($error)) : ?>
+    <div style="color:red; margin-bottom:15px;">
+        <?= htmlspecialchars($error) ?>
+    </div>
+<?php endif; ?>
+
 <form method="post">
     <label for="username">Nom d'utilisateur :</label>
     <input type="text" id="username" name="username" required><br>

@@ -15,7 +15,7 @@ class Database
         $dbname = 'devdb';
         $username = 'devuser';
         $password = 'devpass';
-
+//connection bdd
         try {
             $this->pdo = new PDO(
                 "pgsql:host=$host;dbname=$dbname",
@@ -45,10 +45,10 @@ class Database
         return $this->pdo;
     }
 
-    // Empêcher le clonage de l'instance
+    // empeche le clonage de l'instance
     private function __clone() {}
 
-    // Empêcher la désérialisation
+    // empeche la désérialisation
     public function __wakeup()
     {
         throw new \Exception("Cannot unserialize singleton");

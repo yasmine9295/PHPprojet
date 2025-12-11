@@ -7,18 +7,17 @@ session_start();
 // je charge l'autoload de composer (obligatoire pour PHPMailer)
 require __DIR__ . '/../vendor/autoload.php';
 
-spl_autoload_register(function ($class){
+spl_autoload_register(function ($class){ 
     $class = str_ireplace(["\\", "App"], ["/", ".."],$class);
     if(file_exists($class.".php")){
         include $class.".php";
     }
 });
 
-
 $requestUri = strtok($_SERVER["REQUEST_URI"], "?");
 if(strlen($requestUri)>1)
     $requestUri = rtrim($requestUri, "/");
-$requestUri = strtolower($requestUri);
+$requestUri = strtolower($requestUri); 
 
 $routes = yaml_parse_file("../routes.yml");
 
@@ -41,7 +40,7 @@ if(isset($routes[$requestUri])){
         die("Aucun fichier controller pour cette uri");
     }
 
-    include "../Controllers/".$controller.".php";
+    include "../Controllers/".$controller.".php"; //ajoute le fichier en question
 
     $controller = "App\\Controllers\\".$controller;
     if(!class_exists($controller)){
@@ -58,7 +57,7 @@ if(isset($routes[$requestUri])){
     
 } else {
     // Si aucune route ne correspond, vérifier si c'est une page dynamique
-    $slug = ltrim($requestUri, '/');
+    $slug = ltrim($requestUri, '/'); //enleve premier /
     
     if(empty($slug)){
         // Rediriger vers la home si vide

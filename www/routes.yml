@@ -80,3 +80,29 @@
 /admin/pages/delete:
   controller: Admin
   action: deletePage
+
+
+# Routes pour les utilisateurs normaux
+/user/dashboard:
+  controller: User
+  action: dashboard
+
+/my-pages:
+  controller: User
+  action: myPages
+
+/my-pages/create:
+  controller: User
+  action: createPage
+
+/my-pages/edit:
+  controller: User
+  action: editPage
+
+/my-pages/delete:
+  controller: User
+  action: deletePage
+
+/my-pages/view:
+  controller: User
+  action: viewPage

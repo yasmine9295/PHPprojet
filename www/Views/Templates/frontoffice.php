@@ -24,6 +24,9 @@
                     <?php if(isset($_SESSION['user_id'])): ?>
                         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                             <li><a href="/dashboard">Dashboard</a></li>
+                        <?php else: ?>
+                            <li><a href="/user/dashboard">My Dashboard</a></li>
+                            <li><a href="/my-pages">My Pages</a></li>
                         <?php endif; ?>
                         <li><a href="/logout">Logout</a></li>
                     <?php else: ?>
